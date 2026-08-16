@@ -3,7 +3,7 @@ Bundle-ManifestVersion: 2
 Bundle-Name: Spring Config Visualizer Plugin
 Bundle-SymbolicName: SpringConfigVisualizerPlugin;singleton:=true
 Bundle-Version: 1.0.0.qualifier
-Bundle-Activator: SpringConfigVisualizerPlugin
+Bundle-Activator: main.SpringConfigVisualizerPlugin
 Bundle-Vendor: Local
 Bundle-RequiredExecutionEnvironment: JavaSE-21
 Require-Bundle: org.eclipse.ui,
@@ -17,3 +17,7 @@ Require-Bundle: org.eclipse.ui,
  org.eclipse.zest.layouts
 Automatic-Module-Name: SpringConfigVisualizerPlugin
 Bundle-ActivationPolicy: lazy
+Export-Package: main.ui.views,
+ main.ui.handlers,
+ main.model,
+ main.core

@@ -5,29 +5,36 @@
    <!-- ViewPart regisztráció -->
    <extension point="org.eclipse.ui.views">
       <view
-            class="ui.views.ConfigGraphViewPart"
+            class="main.ui.views.ConfigGraphViewPart"
             id="ui.views.ConfigGraphViewPart"
             name="Spring Config Graph"
             restorable="true">
       </view>
    </extension>
 
-   <!-- Context Menu opció regisztrációja -->
+<!-- Újrafelhasználható feltétel: a kijelölt/aktuális elem *Config.java nevű fájl -->
+   <extension point="org.eclipse.core.expressions.definitions">
+      <definition id="SpringConfigVisualizerPlugin.isConfigJavaFile">
+         <iterate ifEmpty="false" operator="or">
+            <!-- Közvetlen IFile elem esetén (pl. Project/Package Explorer) -->
+            <adapt type="org.eclipse.core.resources.IFile">
+               <test property="org.eclipse.core.resources.name" value="*Config.java"/>
+            </adapt>
+            <!-- Package Explorer / Java Model elem esetén (ICompilationUnit) -->
+            <adapt type="org.eclipse.jdt.core.ICompilationUnit">
+               <test property="org.eclipse.core.resources.name" value="*Config.java"/>
+            </adapt>
+         </iterate>
+      </definition>
+   </extension>
+
+<!-- Context Menu opció regisztrációja -->
    <extension point="org.eclipse.ui.menus">
       <menuContribution locationURI="popup:org.eclipse.ui.popup.any?after=additions">
          <command
                commandId="SpringConfigVisualizerPlugin.showConfigTree"
                label="Show config tree"
                style="push">
-            <visibleWhen checkEnabled="false">
-               <with variable="activeMenuSelection">
-                  <iterate operator="or">
-                     <adapt type="org.eclipse.core.resources.IFile">
-                        <test property="org.eclipse.core.resources.name" value="*Config.java"/>
-                     </adapt>
-                  </iterate>
-               </with>
-            </visibleWhen>
          </command>
       </menuContribution>
    </extension>
@@ -42,7 +49,7 @@
    
    <extension point="org.eclipse.ui.handlers">
       <handler
-            class="ui.handlers.handlers"
+            class="main.ui.handlers.Handlers"
             commandId="SpringConfigVisualizerPlugin.showConfigTree">
       </handler>
    </extension>
