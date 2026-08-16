@@ -8,6 +8,7 @@
             class="main.ui.views.ConfigGraphViewPart"
             id="ui.views.ConfigGraphViewPart"
             name="Spring Config Graph"
+            icon="icons/tree.png"
             restorable="true">
       </view>
    </extension>
