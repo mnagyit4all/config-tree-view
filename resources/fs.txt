@@ -56,3 +56,74 @@ A menüpontra kattintva egy opciós ablak jelenik meg:
 * **Stabil működés:** Hibás/nem fordítható `.java` fájlok esetén a rendszer figyelmen kívül hagyja az érintett elemet, elkerülve a bővítmény összeomlását.
 
 ---
+
+Folder PATH listing
+C:.
+|   .classpath
+|   .gitignore
+|   .project
+|   build.properties
+|   
++---.settings
+|       org.eclipse.core.resources.prefs
+|       org.eclipse.jdt.core.prefs
+|       
++---bin
+|   \---main
+|       |   SpringConfigVisualizerPlugin.class
+|       |   
+|       +---core
+|       |       GraphBuilderService.class
+|       |       SpringConfigAstVisitor.class
+|       |       WorkspaceConfigSearcher.class
+|       |       
+|       +---model
+|       |       ConfigEdge.class
+|       |       ConfigGraph.class
+|       |       ConfigNode.class
+|       |       
+|       +---ui
+|       |   +---dialogs
+|       |   |       DiscoveryModeDialog.class
+|       |   |       
+|       |   +---handlers
+|       |   |       handlers.class
+|       |   |       
+|       |   \---views
+|       |           ConfigGraphViewPart.class
+|       |           
+|       \---validation
+|               CycleDetector.class
+|               
++---META-INF
+|       MANIFEST.MF
+|       
++---resources
+|       fs.txt
+|       
+\---src
+    \---main
+        |   SpringConfigVisualizerPlugin.java
+        |   
+        +---core
+        |       GraphBuilderService.java
+        |       SpringConfigAstVisitor.java
+        |       WorkspaceConfigSearcher.java
+        |       
+        +---model
+        |       ConfigEdge.java
+        |       ConfigGraph.java
+        |       ConfigNode.java
+        |       
+        +---ui
+        |   +---dialogs
+        |   |       DiscoveryModeDialog.java
+        |   |       
+        |   +---handlers
+        |   |       handlers.java
+        |   |       
+        |   \---views
+        |           ConfigGraphViewPart.java
+        |           
+        \---validation
+                CycleDetector.java

@@ -1,11 +1,19 @@
 Manifest-Version: 1.0
 Bundle-ManifestVersion: 2
-Bundle-Name: Config-tree-view
-Bundle-SymbolicName: config-tree-view
+Bundle-Name: Spring Config Visualizer Plugin
+Bundle-SymbolicName: SpringConfigVisualizerPlugin;singleton:=true
 Bundle-Version: 1.0.0.qualifier
-Bundle-Activator: config_tree_view.Activator
-Require-Bundle: org.eclipse.ui,
- org.eclipse.core.runtime
+Bundle-Activator: SpringConfigVisualizerPlugin
+Bundle-Vendor: Local
 Bundle-RequiredExecutionEnvironment: JavaSE-21
-Automatic-Module-Name: config.tree.view
+Require-Bundle: org.eclipse.ui,
+ org.eclipse.core.runtime,
+ org.eclipse.core.resources,
+ org.eclipse.jdt.core,
+ org.eclipse.jdt.ui,
+ org.eclipse.jface,
+ org.eclipse.ui.ide,
+ org.eclipse.zest.core,
+ org.eclipse.zest.layouts
+Automatic-Module-Name: SpringConfigVisualizerPlugin
 Bundle-ActivationPolicy: lazy
