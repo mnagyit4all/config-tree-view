@@ -3,10 +3,19 @@ package main.ui.views;
 import main.model.ConfigEdge;
 import main.model.ConfigGraph;
 import main.model.ConfigNode;
+import main.ui.providers.ConfigTreeContentProvider;
+import main.ui.providers.ConfigTreeLabelProvider;
 
 import org.eclipse.core.resources.IFile;
 import org.eclipse.jdt.ui.JavaUI;
+import org.eclipse.jface.action.Action;
+import org.eclipse.jface.action.IAction;
+import org.eclipse.jface.action.IMenuManager;
+import org.eclipse.jface.action.Separator;
+import org.eclipse.jface.viewers.IStructuredSelection;
+import org.eclipse.jface.viewers.TreeViewer;
 import org.eclipse.swt.SWT;
+import org.eclipse.swt.custom.StackLayout;
 import org.eclipse.swt.events.MouseAdapter;
 import org.eclipse.swt.events.MouseEvent;
 import org.eclipse.swt.graphics.Color;
@@ -17,81 +26,140 @@ import org.eclipse.ui.part.ViewPart;
 
 import org.eclipse.zest.core.widgets.Graph;
 import org.eclipse.zest.core.widgets.GraphConnection;
-import org.eclipse.zest.core.widgets.GraphItem;
 import org.eclipse.zest.core.widgets.GraphNode;
 import org.eclipse.zest.core.widgets.ZestStyles;
 import org.eclipse.zest.layouts.LayoutStyles;
 import org.eclipse.zest.layouts.algorithms.TreeLayoutAlgorithm;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
-/**
- * Single Instance ViewPart a Spring konfigurációs hálózat Zest gráfos megjelenítésére.
- */
 public class ConfigGraphViewPart extends ViewPart {
 
     public static final String ID = "ui.views.ConfigGraphViewPart";
 
+    private Composite container;
+    private StackLayout stackLayout;
+    
     private Graph graphWidget;
-    private final Map<ConfigNode, GraphNode> nodeMap = new HashMap<>();
+    private TreeViewer treeViewer;
 
-    // Színek inicializálása
+    private final Map<ConfigNode, GraphNode> nodeMap = new HashMap<>();
+    private boolean showDetails = false;
+
     private Color greenColor;
     private Color redColor;
     private Color whiteColor;
+    
+    public Color getGreenColor() {
+        return greenColor;
+    }
+
+    public Color getRedColor() {
+        return redColor;
+    }
 
     @Override
     public void createPartControl(Composite parent) {
-        graphWidget = new Graph(parent, SWT.NONE);
-        graphWidget.setLayoutAlgorithm(new TreeLayoutAlgorithm(LayoutStyles.NO_LAYOUT_NODE_RESIZING), true);
+        container = new Composite(parent, SWT.NONE);
+        stackLayout = new StackLayout();
+        container.setLayout(stackLayout);
 
         Display display = parent.getDisplay();
-        greenColor = new Color(display, 144, 238, 144); // Light Green
-        redColor = new Color(display, 255, 102, 102);   // Light Red
+        greenColor = new Color(display, 144, 238, 144);
+        redColor = new Color(display, 255, 102, 102);
         whiteColor = new Color(display, 255, 255, 255);
 
+        // 1. Graph Widget
+        graphWidget = new Graph(container, SWT.NONE);
+        graphWidget.setLayoutAlgorithm(new TreeLayoutAlgorithm(LayoutStyles.NO_LAYOUT_NODE_RESIZING), true);
         graphWidget.addMouseListener(new MouseAdapter() {
             @Override
             public void mouseDoubleClick(MouseEvent e) {
-                java.util.List<?> selectedItems = graphWidget.getSelection();
+                List<?> selectedItems = graphWidget.getSelection();
                 if (!selectedItems.isEmpty() && selectedItems.get(0) instanceof GraphNode) {
                     GraphNode selectedNode = (GraphNode) selectedItems.get(0);
-                    ConfigNode configNode = (ConfigNode) selectedNode.getData();
-                    openInEditor(configNode);
+                    openInEditor((ConfigNode) selectedNode.getData());
                 }
             }
         });
+
+        // 2. Tree Viewer (Structured view)
+        treeViewer = new TreeViewer(container, SWT.MULTI | SWT.H_SCROLL | SWT.V_SCROLL);
+        treeViewer.setContentProvider(new ConfigTreeContentProvider());
+        treeViewer.setLabelProvider(new ConfigTreeLabelProvider(this));
+
+        treeViewer.addDoubleClickListener(event -> {
+            IStructuredSelection selection = (IStructuredSelection) event.getSelection();
+            if (selection.getFirstElement() instanceof ConfigNode) {
+                openInEditor((ConfigNode) selection.getFirstElement());
+            }
+        });
+
+        // Alapértelmezett: Gráf nézet
+        stackLayout.topControl = graphWidget;
+        container.layout();
+
+        createViewMenu();
     }
 
-    /**
-     * Megjelenített gráf felülírása az új eredményekkel.
-     */
+    private void createViewMenu() {
+        IMenuManager menuManager = getViewSite().getActionBars().getMenuManager();
+
+        Action graphViewAction = new Action("Graph view", IAction.AS_RADIO_BUTTON) {
+            @Override
+            public void run() {
+                if (isChecked()) {
+                    stackLayout.topControl = graphWidget;
+                    container.layout(true, true);
+                }
+            }
+        };
+        graphViewAction.setChecked(true);
+
+        Action structuredViewAction = new Action("Structured view", IAction.AS_RADIO_BUTTON) {
+            @Override
+            public void run() {
+                if (isChecked()) {
+                    stackLayout.topControl = treeViewer.getControl();
+                    container.layout(true, true);
+                }
+            }
+        };
+
+        Action showDetailsAction = new Action("Show details", IAction.AS_CHECK_BOX) {
+            @Override
+            public void run() {
+                showDetails = isChecked();
+                treeViewer.refresh();
+            }
+        };
+        showDetailsAction.setChecked(false);
+
+        menuManager.add(graphViewAction);
+        menuManager.add(structuredViewAction);
+        menuManager.add(new Separator());
+        menuManager.add(showDetailsAction);
+    }
+
     public void updateGraph(ConfigGraph configGraph) {
-        // Korábbi elemek törlése
         clearGraph();
 
         if (configGraph == null || configGraph.getNodes().isEmpty()) {
+            treeViewer.setInput(null);
             return;
         }
 
-        // Csomópontok kirajzolása
+        // 1. Zest Gráf frissítése
         for (ConfigNode node : configGraph.getNodes()) {
             GraphNode gNode = new GraphNode(graphWidget, SWT.NONE, node.getDisplayName());
             gNode.setData(node);
-
-            // Cirkuláris függőség alapján színezés (Piros = körben lévő, Zöld = érvényes)
-            if (node.isCyclic()) {
-                gNode.setBackgroundColor(redColor);
-            } else {
-                gNode.setBackgroundColor(greenColor);
-            }
+            gNode.setBackgroundColor(node.isCyclic() ? redColor : greenColor);
             gNode.setForegroundColor(whiteColor);
-
             nodeMap.put(node, gNode);
         }
 
-        // Irányított élek/nyilak meghúzása
         for (ConfigEdge edge : configGraph.getEdges()) {
             GraphNode sourceGNode = nodeMap.get(edge.getSource());
             GraphNode targetGNode = nodeMap.get(edge.getTarget());
@@ -100,9 +168,10 @@ public class ConfigGraphViewPart extends ViewPart {
                 new GraphConnection(graphWidget, ZestStyles.CONNECTIONS_DIRECTED, sourceGNode, targetGNode);
             }
         }
-
-        // Gráf elrendezésének frissítése
         graphWidget.applyLayout();
+
+        // 2. TreeViewer frissítése (beküldjük az egész gráfot, a provider kiszűri a rootNode-ot)
+        treeViewer.setInput(configGraph);
     }
 
     private void clearGraph() {
@@ -117,7 +186,6 @@ public class ConfigGraphViewPart extends ViewPart {
 
     private void openInEditor(ConfigNode configNode) {
         if (configNode == null) return;
-
         try {
             if (configNode.getCompilationUnit() != null) {
                 JavaUI.openInEditor(configNode.getCompilationUnit());
@@ -130,10 +198,14 @@ public class ConfigGraphViewPart extends ViewPart {
         }
     }
 
+    public boolean isShowDetails() {
+        return showDetails;
+    }
+
     @Override
     public void setFocus() {
-        if (graphWidget != null && !graphWidget.isDisposed()) {
-            graphWidget.setFocus();
+        if (container != null && !container.isDisposed()) {
+            container.setFocus();
         }
     }
 

@@ -41,4 +41,5 @@ public class ConfigEdge {
     public String toString() {
         return source.getDisplayName() + " -> " + target.getDisplayName();
     }
+
 }

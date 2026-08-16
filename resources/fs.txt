@@ -63,6 +63,7 @@ C:.
 |   .gitignore
 |   .project
 |   build.properties
+|   plugin.xml
 |   
 +---.settings
 |       org.eclipse.core.resources.prefs
@@ -84,17 +85,30 @@ C:.
 |       |       
 |       +---ui
 |       |   +---dialogs
+|       |   |       DiscoveryModeDialog$DiscoveryMode.class
 |       |   |       DiscoveryModeDialog.class
 |       |   |       
 |       |   +---handlers
-|       |   |       handlers.class
+|       |   |       Handlers.class
+|       |   |       
+|       |   +---providers
+|       |   |       ConfigTreeContentProvider.class
+|       |   |       ConfigTreeLabelProvider.class
 |       |   |       
 |       |   \---views
+|       |           ConfigGraphViewPart$1.class
+|       |           ConfigGraphViewPart$2.class
+|       |           ConfigGraphViewPart$3.class
+|       |           ConfigGraphViewPart$4.class
 |       |           ConfigGraphViewPart.class
 |       |           
 |       \---validation
 |               CycleDetector.class
+|               MultipleImportDetector.class
 |               
++---icons
+|       tree.png
+|       
 +---META-INF
 |       MANIFEST.MF
 |       
@@ -120,10 +134,15 @@ C:.
         |   |       DiscoveryModeDialog.java
         |   |       
         |   +---handlers
-        |   |       handlers.java
+        |   |       Handlers.java
+        |   |       
+        |   +---providers
+        |   |       ConfigTreeContentProvider.java
+        |   |       ConfigTreeLabelProvider.java
         |   |       
         |   \---views
         |           ConfigGraphViewPart.java
         |           
         \---validation
                 CycleDetector.java
+                MultipleImportDetector.java

@@ -10,8 +10,20 @@ import java.util.Set;
  */
 public class ConfigGraph {
 
+    private ConfigNode rootNode; // ÚJ: A kijelölt kezdő konfiguráció (gyökér)
     private final Set<ConfigNode> nodes = new HashSet<>();
     private final Set<ConfigEdge> edges = new HashSet<>();
+
+    public ConfigNode getRootNode() {
+        return rootNode;
+    }
+
+    public void setRootNode(ConfigNode rootNode) {
+        this.rootNode = rootNode;
+        if (rootNode != null) {
+            addNode(rootNode);
+        }
+    }
 
     public void addNode(ConfigNode node) {
         if (node != null) {
@@ -42,6 +54,7 @@ public class ConfigGraph {
     }
 
     public void clear() {
+        rootNode = null;
         nodes.clear();
         edges.clear();
     }

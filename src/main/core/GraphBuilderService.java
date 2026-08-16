@@ -1,8 +1,10 @@
 package main.core;
 
+import main.model.ConfigEdge;
 import main.model.ConfigGraph;
 import main.model.ConfigNode;
 import main.validation.CycleDetector;
+import main.validation.MultipleImportDetector;
 import main.ui.dialogs.DiscoveryModeDialog.DiscoveryMode;
 
 import org.eclipse.jdt.core.ICompilationUnit;
@@ -29,7 +31,7 @@ public class GraphBuilderService {
             return graph;
         }
 
-        // 1. Gyökér csomópont feldolgozása
+     // 1. Gyökér csomópont feldolgozása
         String rootFqn = getFullyQualifiedName(rootUnit);
         ConfigNode rootNode = new ConfigNode(rootFqn, rootUnit);
 
@@ -39,6 +41,7 @@ public class GraphBuilderService {
             return graph;
         }
 
+        graph.setRootNode(rootNode); 
         graph.addNode(rootNode);
 
         // 2. Lefelé történő rekurzív feltárás (Show below)
@@ -108,7 +111,6 @@ public class GraphBuilderService {
             }
         }
 
-        // 4. Cirkuláris függőség ellenőrzés futtatása
         CycleDetector.detectCycles(graph);
 
         return graph;
