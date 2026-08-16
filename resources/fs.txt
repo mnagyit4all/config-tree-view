@@ -1,0 +1,58 @@
+---
+
+## 1. Célkitűzés
+
+A bővítmény célja,hogy megkönnyítse a Spring Framework `@Configuration` és `@Import` annotációk által alkotott függőségi hálózat feltérképezését, vizualizációját és validációját Eclipse IDE környezetben, támogatva a többmodulos (multi-module) projektarchitektúrákat.
+
+---
+
+## 2. Funkcionális Követelmények
+
+### 2.1 Context Menu Integráció
+
+* A rendszer az Eclipse Package / Project Explorerben a `*Config.java` mintára illeszkedő fájlokra történő **jobb klikk (helyi menü)** esetén megjelenít egy új opciót: **"Show config tree"**.
+* A menüpont kizárólag a Workspace-ben található Java forrásfájlokra / Spring konfigurációs osztályokra aktív.
+
+### 2.2 Felfedezési Mód Kiválasztása (Modal Dialog)
+
+A menüpontra kattintva egy opciós ablak jelenik meg:
+
+1. **Show below (Lefelé feltárás):**
+* A kiválasztott `*Config.java` fájlból kiindulva rekurzívan bejárja a benne található `@Import({...})` annotációkban megadott osztályokat.
+* Kizárólag azokat a célosztályokat dolgozza fel, amelyek rendelkeznek a `@Configuration` annotációval (az annotációk sorrendje nem kötött).
+
+
+2. **Show in workspace (Teljes bejárás - le és fel):**
+* Először végrehajtja a *Show below* lefelé történő feltárását.
+* Ezt követően a teljes Eclipse Workspace-ben található összes `*Config.java` fájlt átvizsgálja, és felépíti a felfelina mutató függőségi láncot is (mely konfigurációk importálják a kiválasztott vagy a feltárt elemeket).
+
+
+
+### 2.3 Hatókör és Függőségek Kezelése
+
+* **Workspace kizárólagosság:** A feltérképezés kizárólag a Workspace projektjeiben található `.java` forrásfájlokra terjed ki. Külső, fordított JAR/AAR függőségekben lévő konfigurációs osztályokat a rendszer nem vizsgál és nem jelenít meg.
+* **Multi-module támogatás:** A bejárás projektfüggetlen, a Workspace-en belül modulok között átnyúló függőségeket is leképezi.
+
+### 2.4 Vizualizáció és Nézet (Eclipse ViewPart + Gráf)
+
+* **Single Instance ViewPart:** Az eredmény egy dedikált Eclipse Tool Window-ban (ViewPart) jelenik meg. Újabb fájlon indított elemzés **felülírja** a korábbi eredményt.
+* **Gráf alapú megjelenítés:** A függőségi fa fadiagram helyett egyértelmű **vizuális gráfként** (csomópontok és irányított élek/nyilak formájában, pl. Eclipse Zest használatával) jelenik meg.
+* **Navigáció:** Bármely gráf-csomópontra (node) történő **dupla kattintáskor** az Eclipse megnyitja a hozzá tartozó `.java` forrásfájlt a kód-szerkesztőben.
+
+### 2.5 Cirkuláris Függőség Validáció és Színezés
+
+* A gráf felépítését követően a rendszer egy in-memory kördetektáló algoritmust futtat le a hálózaton.
+* **Színezési szabályok:**
+* **Zöld:** Valid konfigurációs csomópont (nem vesz részt cirkuláris függőségben).
+* **Piros:** **Kizárólag az a csomópont lesz piros, amely közvetlenül részese a cirkuláris függőségi körnek.** A körhöz kapcsolódó, de nem körkörös függőségben lévő elemek zöldek maradnak.
+
+
+
+---
+
+## 3. Nem-funkcionális Követelmények
+
+* **Teljesítmény:** Az Eclipse JDT Search Engine hatékony használata a nagy méretű Workspace-ek gyors feltérképezésére.
+* **Stabil működés:** Hibás/nem fordítható `.java` fájlok esetén a rendszer figyelmen kívül hagyja az érintett elemet, elkerülve a bővítmény összeomlását.
+
+---
