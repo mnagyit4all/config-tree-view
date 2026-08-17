@@ -96,15 +96,22 @@ C:.
 |       |   |       ConfigTreeLabelProvider.class
 |       |   |       
 |       |   \---views
-|       |           ConfigGraphViewPart$1.class
-|       |           ConfigGraphViewPart$2.class
-|       |           ConfigGraphViewPart$3.class
-|       |           ConfigGraphViewPart$4.class
-|       |           ConfigGraphViewPart.class
-|       |           
+|       |       |   SpringConfigViewPart$1.class
+|       |       |   SpringConfigViewPart$2.class
+|       |       |   SpringConfigViewPart$3.class
+|       |       |   SpringConfigViewPart.class
+|       |       |   
+|       |       +---components
+|       |       |       StructuredTreeComposite.class
+|       |       |       ZestGraphComposite$1.class
+|       |       |       ZestGraphComposite.class
+|       |       |       
+|       |       \---helpers
+|       |               EditorNavigator.class
+|       |               ViewColorManager.class
+|       |               
 |       \---validation
 |               CycleDetector.class
-|               MultipleImportDetector.class
 |               
 +---icons
 |       tree.png
@@ -141,8 +148,15 @@ C:.
         |   |       ConfigTreeLabelProvider.java
         |   |       
         |   \---views
-        |           ConfigGraphViewPart.java
-        |           
+        |       |   SpringConfigViewPart.java
+        |       |   
+        |       +---components
+        |       |       StructuredTreeComposite.java
+        |       |       ZestGraphComposite.java
+        |       |       
+        |       \---helpers
+        |               EditorNavigator.java
+        |               ViewColorManager.java
+        |               
         \---validation
                 CycleDetector.java
-                MultipleImportDetector.java

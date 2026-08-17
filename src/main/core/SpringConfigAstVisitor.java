@@ -16,6 +16,11 @@ import org.eclipse.jdt.core.dom.TypeLiteral;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * v1.0.0
+ * Ebben a verzióban még csak a fálj neve alapján nézzük meg hogy bejárható e rekúrzivan a fa vagy sem
+ * A következő verzió arra lesz felkészitve hogy a springes regisztrált környezet alapján tudja ezt megvizsgálni
+ */
 public class SpringConfigAstVisitor extends ASTVisitor {
 
     private boolean isConfiguration = false;

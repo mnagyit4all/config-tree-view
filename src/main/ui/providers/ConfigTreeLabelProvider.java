@@ -1,18 +1,22 @@
 package main.ui.providers;
 
 import main.model.ConfigNode;
-import main.ui.views.ConfigGraphViewPart;
+import main.ui.views.helpers.ViewColorManager;
 
 import org.eclipse.jface.viewers.IColorProvider;
 import org.eclipse.jface.viewers.LabelProvider;
 import org.eclipse.swt.graphics.Color;
 
+import java.util.function.BooleanSupplier;
+
 public class ConfigTreeLabelProvider extends LabelProvider implements IColorProvider {
 
-    private final ConfigGraphViewPart viewPart;
+    private final ViewColorManager colorManager;
+    private final BooleanSupplier showDetailsSupplier;
 
-    public ConfigTreeLabelProvider(ConfigGraphViewPart viewPart) {
-        this.viewPart = viewPart;
+    public ConfigTreeLabelProvider(ViewColorManager colorManager, BooleanSupplier showDetailsSupplier) {
+        this.colorManager = colorManager;
+        this.showDetailsSupplier = showDetailsSupplier;
     }
 
     @Override
@@ -20,8 +24,7 @@ public class ConfigTreeLabelProvider extends LabelProvider implements IColorProv
         if (element instanceof ConfigNode) {
             ConfigNode node = (ConfigNode) element;
             String label = node.getDisplayName();
-
-            if (viewPart.isShowDetails()) {
+            if (showDetailsSupplier.getAsBoolean()) {
                 label += node.isCyclic() ? " [CIRCULAR]" : " [OK]";
             }
             return label;
@@ -33,14 +36,13 @@ public class ConfigTreeLabelProvider extends LabelProvider implements IColorProv
     public Color getForeground(Object element) {
         if (element instanceof ConfigNode) {
             ConfigNode node = (ConfigNode) element;
-            // Cirkuláris függőség esetén piros, különben zöld betűszín
-            return node.isCyclic() ? viewPart.getRedColor() : viewPart.getGreenColor();
+            return node.isCyclic() ? colorManager.getRedColor() : colorManager.getGreenColor();
         }
-        return null; // Alapértelmezett SWT szövegszín
+        return null;
     }
 
     @Override
     public Color getBackground(Object element) {
-        return null; // Alapértelmezett hátteret használ
+        return null;
     }
 }

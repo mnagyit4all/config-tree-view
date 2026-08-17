@@ -5,8 +5,8 @@
    <!-- ViewPart regisztráció -->
    <extension point="org.eclipse.ui.views">
       <view
-            class="main.ui.views.ConfigGraphViewPart"
-            id="ui.views.ConfigGraphViewPart"
+            class="main.ui.views.SpringConfigViewPart"
+            id="ui.views.SpringConfigViewPart"
             name="Spring Config Graph"
             icon="icons/tree.png"
             restorable="true">

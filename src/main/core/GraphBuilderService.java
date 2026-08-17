@@ -1,10 +1,8 @@
 package main.core;
 
-import main.model.ConfigEdge;
 import main.model.ConfigGraph;
 import main.model.ConfigNode;
 import main.validation.CycleDetector;
-import main.validation.MultipleImportDetector;
 import main.ui.dialogs.DiscoveryModeDialog.DiscoveryMode;
 
 import org.eclipse.jdt.core.ICompilationUnit;

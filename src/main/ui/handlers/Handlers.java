@@ -3,7 +3,7 @@ package main.ui.handlers;
 import main.core.GraphBuilderService;
 import main.model.ConfigGraph;
 import main.ui.dialogs.DiscoveryModeDialog;
-import main.ui.views.ConfigGraphViewPart;
+import main.ui.views.SpringConfigViewPart;
 
 import org.eclipse.core.commands.AbstractHandler;
 import org.eclipse.core.commands.ExecutionEvent;
@@ -52,7 +52,7 @@ public class Handlers extends AbstractHandler {
             // Nézet (ViewPart)
             try {
                 IWorkbenchPage page = HandlerUtil.getActiveWorkbenchWindow(event).getActivePage();
-                ConfigGraphViewPart view = (ConfigGraphViewPart) page.showView(ConfigGraphViewPart.ID);
+                SpringConfigViewPart view = (SpringConfigViewPart) page.showView(SpringConfigViewPart.ID);
                 view.updateGraph(graph);
             } catch (Exception e) {
                 throw new ExecutionException("Hiba a ConfigGraphViewPart megjelenítése során", e);
