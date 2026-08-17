@@ -2,6 +2,9 @@ package main.model;
 
 import java.util.Objects;
 
+/**
+ * Egy Spring @Configuration osztályban deklarált @Bean-t képvisel.
+ */
 public class BeanModel {
 
     private final String name;
