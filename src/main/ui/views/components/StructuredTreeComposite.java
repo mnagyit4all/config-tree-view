@@ -34,6 +34,14 @@ public class StructuredTreeComposite extends Composite {
             }
         });
     }
+    public void addSelectionListener(java.util.function.Consumer<ConfigNode> onNodeSelected) {
+        treeViewer.addSelectionChangedListener(event -> {
+            IStructuredSelection selection = (IStructuredSelection) event.getSelection();
+            if (selection.getFirstElement() instanceof ConfigNode) {
+                onNodeSelected.accept((ConfigNode) selection.getFirstElement());
+            }
+        });
+    }
 
     public void setInput(ConfigGraph configGraph) {
         treeViewer.setInput(configGraph);

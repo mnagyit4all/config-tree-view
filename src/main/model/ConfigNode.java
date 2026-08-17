@@ -3,6 +3,9 @@ package main.model;
 import org.eclipse.core.resources.IFile;
 import org.eclipse.jdt.core.ICompilationUnit;
 
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 import java.util.Objects;
 
 /**
@@ -14,7 +17,10 @@ public class ConfigNode {
     private final String displayName;
     private final ICompilationUnit compilationUnit;
     private final IFile file;
+    
     private boolean cyclic = false;
+    private boolean hasInvalidBean = false;
+    private final List<BeanModel> beans = new ArrayList<>();
 
     public ConfigNode(String fullyQualifiedName, ICompilationUnit compilationUnit) {
         this.fullyQualifiedName = fullyQualifiedName;
@@ -36,6 +42,46 @@ public class ConfigNode {
         return lastDot != -1 ? fqn.substring(lastDot + 1) : fqn;
     }
 
+    public List<BeanModel> getBeans() {
+        return Collections.unmodifiableList(beans);
+    }
+
+    public void addBean(BeanModel bean) {
+        if (bean != null && !beans.contains(bean)) {
+            beans.add(bean);
+        }
+    }
+
+    public boolean hasInvalidBean() {
+        return hasInvalidBean;
+    }
+
+    public void setHasInvalidBean(boolean hasInvalidBean) {
+        this.hasInvalidBean = hasInvalidBean;
+    }
+
+    public boolean isCyclic() {
+        return cyclic;
+    }
+
+    public void setCyclic(boolean cyclic) {
+        this.cyclic = cyclic;
+    }
+
+    /**
+     * Szöveges státusz a Structured View felirataihoz (2.4 pont alapján).
+     */
+    public String getStatusTag() {
+        if (cyclic) {
+            return "[CIRCULAR]";
+        }
+        if (hasInvalidBean) {
+            return "[INVALID_BEAN]";
+        }
+        return "[OK]";
+    }
+
+
     public String getFullyQualifiedName() {
         return fullyQualifiedName;
     }
@@ -50,14 +96,6 @@ public class ConfigNode {
 
     public IFile getFile() {
         return file;
-    }
-
-    public boolean isCyclic() {
-        return cyclic;
-    }
-
-    public void setCyclic(boolean cyclic) {
-        this.cyclic = cyclic;
     }
 
     @Override
@@ -75,6 +113,6 @@ public class ConfigNode {
 
     @Override
     public String toString() {
-        return displayName + (cyclic ? " [CYCLIC]" : "");
+        return displayName + " " + getStatusTag();
     }
 }

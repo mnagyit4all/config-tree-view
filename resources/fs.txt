@@ -2,7 +2,7 @@
 
 ## 1. Célkitűzés
 
-A bővítmény célja,hogy megkönnyítse a Spring Framework `@Configuration` és `@Import` annotációk által alkotott függőségi hálózat feltérképezését, vizualizációját és validációját Eclipse IDE környezetben, támogatva a többmodulos (multi-module) projektarchitektúrákat.
+A bővítmény célja, hogy megkönnyítse a Spring Framework `@Configuration` és `@Import` annotációk által alkotott függőségi hálózat feltérképezését, vizualizációját, valamint cirkuláris és bean-szintű validációját Eclipse IDE környezetben, támogatva a többmodulos (multi-module) projektarchitektúrákat.
 
 ---
 
@@ -24,7 +24,7 @@ A menüpontra kattintva egy opciós ablak jelenik meg:
 
 2. **Show in workspace (Teljes bejárás - le és fel):**
 * Először végrehajtja a *Show below* lefelé történő feltárását.
-* Ezt követően a teljes Eclipse Workspace-ben található összes `*Config.java` fájlt átvizsgálja, és felépíti a felfelina mutató függőségi láncot is (mely konfigurációk importálják a kiválasztott vagy a feltárt elemeket).
+* Ezt követően a teljes Eclipse Workspace-ben található összes `*Config.java` fájlt átvizsgálja, és felépíti a felfelé mutató függőségi láncot is (mely konfigurációk importálják a kiválasztott vagy a feltárt elemeket).
 
 
 
@@ -33,18 +33,41 @@ A menüpontra kattintva egy opciós ablak jelenik meg:
 * **Workspace kizárólagosság:** A feltérképezés kizárólag a Workspace projektjeiben található `.java` forrásfájlokra terjed ki. Külső, fordított JAR/AAR függőségekben lévő konfigurációs osztályokat a rendszer nem vizsgál és nem jelenít meg.
 * **Multi-module támogatás:** A bejárás projektfüggetlen, a Workspace-en belül modulok között átnyúló függőségeket is leképezi.
 
-### 2.4 Vizualizáció és Nézet (Eclipse ViewPart + Gráf)
+### 2.4 Vizualizáció és Nézetek (Eclipse ViewPart)
 
 * **Single Instance ViewPart:** Az eredmény egy dedikált Eclipse Tool Window-ban (ViewPart) jelenik meg. Újabb fájlon indított elemzés **felülírja** a korábbi eredményt.
-* **Gráf alapú megjelenítés:** A függőségi fa fadiagram helyett egyértelmű **vizuális gráfként** (csomópontok és irányított élek/nyilak formájában, pl. Eclipse Zest használatával) jelenik meg.
-* **Navigáció:** Bármely gráf-csomópontra (node) történő **dupla kattintáskor** az Eclipse megnyitja a hozzá tartozó `.java` forrásfájlt a kód-szerkesztőben.
+* **Nézetválasztó (Jobb felső sarok):** A ViewPart jobb felső sarkában található kapcsolóval váltani lehet a megjelenítési módok között:
+* **Graph view:** A függőségi hálózat vizuális gráfként (csomópontok és irányított nyilak, pl. Eclipse Zest használatával) jelenik meg.
+* **Structured view:** Kinyitható fa-struktúra (Tree View), ahol a kiválasztott konfigurációs osztály alkotja a gyökér (Root) elemet, alatta pedig hierarchikusan kibonthatók az importált konfigurációk.
 
-### 2.5 Cirkuláris Függőség Validáció és Színezés
 
-* A gráf felépítését követően a rendszer egy in-memory kördetektáló algoritmust futtat le a hálózaton.
-* **Színezési szabályok:**
-* **Zöld:** Valid konfigurációs csomópont (nem vesz részt cirkuláris függőségben).
-* **Piros:** **Kizárólag az a csomópont lesz piros, amely közvetlenül részese a cirkuláris függőségi körnek.** A körhöz kapcsolódó, de nem körkörös függőségben lévő elemek zöldek maradnak.
+* **"Show details" opció (Ki/Be kapcsolható):**
+* A nézet fejlécében egy ki/be kapcsolható opció.
+* Be kapcsolt állapotban a **Structured view** nézetben az egyes csomópontok neve mellett szögletes zárójelben megjelenik a státuszuk: pl. `[OK]`, `[CIRCULAR]` vagy `[INVALID_BEAN]`.
+
+
+* **Navigáció:** Bármely csomópontra (node) történő **dupla kattintáskor** az Eclipse megnyitja a hozzá tartozó `.java` forrásfájlt a kód-szerkesztőben.
+* **Bean Részletező Panel (Alsó nézet (Csak akkor ha be van kapcsolva a Show bean details opció)):**
+* A fő nézet (Gráf/Struktúra) alatt elhelyezkedő kisebb részletező ablak.
+* Bármelyik konfigurációs csomópontra rákattintva az alsó panelben listázásra kerülnek az adott osztályban deklarált Spring bean-ek (elegendő a Java class / metódus neve).
+* A bean-ek színezése a validáció eredményét tükrözi (Zöld: rendben lévő bean, Piros: hibás/duplikált bean).
+
+
+
+### 2.5 Validáció és Színezési Szabályok
+
+A gráf felépítését követően a rendszer kétféle in-memory validációt futtat le:
+
+1. **Cirkuláris Függőség Validáció:**
+* Detektálja a rekurzív és körkörös `@Import` hivatkozásokat.
+* **Kizárólag az a csomópont és elérési útvonal vált pirosra, amely közvetlenül részese a cirkuláris függőségi körnek.**
+
+
+2. **Bean Validator (Duplikált / Érvénytelen Bean Deklaráció):**
+* A rendszer elemzi az egyes konfigurációs osztályokban található `@Bean` deklarációkat.
+* Ha egy adott konfigurációban (vagy a fölötte lévő szülő konfigurációban) beregisztrált bean újra deklarálásra kerül egy alatta lévő, behúzott konfigurációban, a rendszer ezt **invalid bean declaration** hibának tekinti.
+* **Visualizáció:** A konfliktusban érintett konfigurációs elérési útvonal és csomópont piros színezést kap.
+* **Bean panel vizualizáció:** Az alsó bean részletező panelben az érintett hibás bean neve **piros** színnel jelenik meg, míg a szabályos bean-ek **zöldek** maradnak, így azonnal beazonosítható a duplikáció pontos helye és forrása.
 
 
 
@@ -52,10 +75,81 @@ A menüpontra kattintva egy opciós ablak jelenik meg:
 
 ## 3. Nem-funkcionális Követelmények
 
-* **Teljesítmény:** Az Eclipse JDT Search Engine hatékony használata a nagy méretű Workspace-ek gyors feltérképezésére.
+* **Teljesítmény:** Az Eclipse JDT Search Engine hatékony használata a nagy méretű Workspace-ek és az AST (Abstract Syntax Tree) alapú bean-elemzés gyors feltérképezésére.
 * **Stabil működés:** Hibás/nem fordítható `.java` fájlok esetén a rendszer figyelmen kívül hagyja az érintett elemet, elkerülve a bővítmény összeomlását.
 
 ---
+
+A megadott projektstruktúra hiánytalanul leképezi a specifikációban meghatározott funkcionális, nézeti és validációs követelményeket.
+
+---
+
+### Funkcionális Követelmények és Komponens Megfeleltetés
+
+| Követelmény | Érintett Modul / Fájl | Státusz |
+| --- | --- | --- |
+| **2.1 Context Menu Integráció** | `plugin.xml`<br>
+
+<br>`ui/handlers/Handlers.java` | **[KÉSZ]** |
+| **2.2 Felfedezési Mód (Modal Dialog)** | `ui/dialogs/DiscoveryModeDialog.java` | **[KÉSZ]** |
+| **2.3 Hatókör és Workspace Keresés** | `core/WorkspaceConfigSearcher.java` | **[KÉSZ]** |
+| **2.4 ViewPart & Nézetválasztó** | `ui/views/SpringConfigViewPart.java` | **[KÉSZ]** |
+| **2.4 Graph View (Zest Integráció)** | `ui/views/components/ZestGraphComposite.java` | **[KÉSZ]** |
+| **2.4 Structured View (Tree View)** | `ui/views/components/StructuredTreeComposite.java`<br>
+
+<br>`ui/providers/ConfigTreeContentProvider.java`<br>
+
+<br>`ui/providers/ConfigTreeLabelProvider.java` | **[KÉSZ]** |
+| **2.4 Kód-szerkesztő Navigáció** | `ui/views/helpers/EditorNavigator.java` | **[KÉSZ]** |
+| **2.4 Bean Részletező Panel & Színezés** | `model/BeanModel.java`<br>
+
+<br>`ui/views/helpers/ViewColorManager.java` | **[KÉSZ]** |
+| **2.5 Cirkuláris Függőség Validáció** | `validation/CycleDetector.java` | **[KÉSZ]** |
+| **2.5 Bean Validator (Duplikációk)** | `validation/BeanValidator.java` | **[KÉSZ]** |
+| **3. Nem-funkcionális (JDT AST Parsing)** | `core/SpringConfigAstVisitor.java`<br>
+
+<br>`core/GraphBuilderService.java` | **[KÉSZ]** |
+
+---
+
+### Projektfájlok és Állapotuk
+
+**Gyökér és Konfiguráció**
+
+* `SpringConfigVisualizerPlugin.java` – **[KÉSZ]** (Bővítmény életciklus-kezelő és Activator)
+* `plugin.xml` – **[KÉSZ]** (Context menu pont, ViewPart regisztráció)
+* `META-INF/MANIFEST.MF` – **[KÉSZ]** (JDT, Zest és Eclipse UI függőségek)
+* `build.properties` – **[KÉSZ]** (Build konfiguráció)
+
+**Core Modul (`src/main/core/`)**
+
+* `GraphBuilderService.java` – **[KÉSZ]** (Gráfépítés, import hálózat összefűzése)
+* `SpringConfigAstVisitor.java` – **[KÉSZ]** (AST elemző `@Configuration`, `@Import`, `@Bean` felderítésre)
+* `WorkspaceConfigSearcher.java` – **[KÉSZ]** (JDT Search Engine integráció Workspace-szintű kereséshez)
+
+**Model Modul (`src/main/model/`)**
+
+* `BeanModel.java` – **[KÉSZ]** (Bean deklarációk adatmodellje és validációs állapota)
+* `ConfigEdge.java` – **[KÉSZ]** (Irányított él modell a bejárásokhoz)
+* `ConfigGraph.java` – **[KÉSZ]** (Gráf adatszerkezet a teljes hálózathoz)
+* `ConfigNode.java` – **[KÉSZ]** (Konfigurációs osztály csomópont státuszokkal)
+
+**Validation Modul (`src/main/validation/`)**
+
+* `CycleDetector.java` – **[KÉSZ]** (Körkörös `@Import` hivatkozások detektálása)
+* `BeanValidator.java` – **[KÉSZ]** (Duplikált/érvénytelen bean-ek keresése hierarchia alapján)
+
+**UI Modul (`src/main/ui/`)**
+
+* `DiscoveryModeDialog.java` – **[KÉSZ]** (*Show below* / *Show in workspace* opciós ablak)
+* `Handlers.java` – **[KÉSZ]** (Context menu jobb klikk eseménykezelő)
+* `ConfigTreeContentProvider.java` – **[KÉSZ]** (Fa nézet adat-providere)
+* `ConfigTreeLabelProvider.java` – **[KÉSZ]** (Címkék, státuszjelzések: `[OK]`, `[CIRCULAR]`, `[INVALID_BEAN]`)
+* `SpringConfigViewPart.java` – **[KÉSZ]** (Fő Eclipse ViewPart, kapcsolók és alsó Bean Panel)
+* `StructuredTreeComposite.java` – **[KÉSZ]** (Strukturált fa nézeti komponens)
+* `ZestGraphComposite.java` – **[KÉSZ]** (Eclipse Zest vizuális gráf komponens)
+* `EditorNavigator.java` – **[KÉSZ]** (Dupla kattintásos fájlnyitás az editorban)
+* `ViewColorManager.java` – **[KÉSZ]** (Piros/Zöld színezések kezelése a hibalisták alapján)
 
 Folder PATH listing
 C:.
@@ -79,6 +173,7 @@ C:.
 |       |       WorkspaceConfigSearcher.class
 |       |       
 |       +---model
+|       |       BeanModel.class
 |       |       ConfigEdge.class
 |       |       ConfigGraph.class
 |       |       ConfigNode.class
@@ -111,6 +206,7 @@ C:.
 |       |               ViewColorManager.class
 |       |               
 |       \---validation
+|               BeanValidator.class
 |               CycleDetector.class
 |               
 +---icons
@@ -132,6 +228,7 @@ C:.
         |       WorkspaceConfigSearcher.java
         |       
         +---model
+        |       BeanModel.java
         |       ConfigEdge.java
         |       ConfigGraph.java
         |       ConfigNode.java
@@ -159,4 +256,5 @@ C:.
         |               ViewColorManager.java
         |               
         \---validation
+                BeanValidator.java
                 CycleDetector.java

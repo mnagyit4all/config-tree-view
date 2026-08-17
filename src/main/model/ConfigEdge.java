@@ -10,6 +10,8 @@ public class ConfigEdge {
 
     private final ConfigNode source;
     private final ConfigNode target;
+    private boolean cyclic = false;
+    private boolean invalid = false;
 
     public ConfigEdge(ConfigNode source, ConfigNode target) {
         this.source = source;
@@ -22,6 +24,22 @@ public class ConfigEdge {
 
     public ConfigNode getTarget() {
         return target;
+    }
+
+    public boolean isCyclic() {
+        return cyclic;
+    }
+
+    public void setCyclic(boolean cyclic) {
+        this.cyclic = cyclic;
+    }
+
+    public boolean isInvalid() {
+        return invalid;
+    }
+
+    public void setInvalid(boolean invalid) {
+        this.invalid = invalid;
     }
 
     @Override
@@ -41,5 +59,4 @@ public class ConfigEdge {
     public String toString() {
         return source.getDisplayName() + " -> " + target.getDisplayName();
     }
-
 }

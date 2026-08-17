@@ -3,13 +3,12 @@ package main.ui.providers;
 import main.model.ConfigNode;
 import main.ui.views.helpers.ViewColorManager;
 
-import org.eclipse.jface.viewers.IColorProvider;
-import org.eclipse.jface.viewers.LabelProvider;
+import org.eclipse.jface.viewers.ColumnLabelProvider;
 import org.eclipse.swt.graphics.Color;
 
 import java.util.function.BooleanSupplier;
 
-public class ConfigTreeLabelProvider extends LabelProvider implements IColorProvider {
+public class ConfigTreeLabelProvider extends ColumnLabelProvider {
 
     private final ViewColorManager colorManager;
     private final BooleanSupplier showDetailsSupplier;
@@ -23,11 +22,10 @@ public class ConfigTreeLabelProvider extends LabelProvider implements IColorProv
     public String getText(Object element) {
         if (element instanceof ConfigNode) {
             ConfigNode node = (ConfigNode) element;
-            String label = node.getDisplayName();
-            if (showDetailsSupplier.getAsBoolean()) {
-                label += node.isCyclic() ? " [CIRCULAR]" : " [OK]";
+            if (showDetailsSupplier != null && showDetailsSupplier.getAsBoolean()) {
+                return node.getDisplayName() + " " + node.getStatusTag();
             }
-            return label;
+            return node.getDisplayName();
         }
         return super.getText(element);
     }
@@ -36,13 +34,11 @@ public class ConfigTreeLabelProvider extends LabelProvider implements IColorProv
     public Color getForeground(Object element) {
         if (element instanceof ConfigNode) {
             ConfigNode node = (ConfigNode) element;
-            return node.isCyclic() ? colorManager.getRedColor() : colorManager.getGreenColor();
+            if (node.isCyclic() || node.hasInvalidBean()) {
+                return colorManager.getRedColor();
+            }
+            return colorManager.getGreenColor();
         }
-        return null;
-    }
-
-    @Override
-    public Color getBackground(Object element) {
         return null;
     }
 }

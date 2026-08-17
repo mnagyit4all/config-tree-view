@@ -1,6 +1,8 @@
 package main.ui.views;
 
+import main.model.BeanModel;
 import main.model.ConfigGraph;
+import main.model.ConfigNode;
 import main.ui.views.components.StructuredTreeComposite;
 import main.ui.views.components.ZestGraphComposite;
 import main.ui.views.helpers.ViewColorManager;
@@ -9,45 +11,93 @@ import org.eclipse.jface.action.Action;
 import org.eclipse.jface.action.IAction;
 import org.eclipse.jface.action.IMenuManager;
 import org.eclipse.jface.action.Separator;
+import org.eclipse.jface.viewers.ArrayContentProvider;
+import org.eclipse.jface.viewers.LabelProvider;
+import org.eclipse.jface.viewers.TableViewer;
 import org.eclipse.swt.SWT;
+import org.eclipse.swt.custom.SashForm;
 import org.eclipse.swt.custom.StackLayout;
+import org.eclipse.swt.graphics.Color;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.ui.part.ViewPart;
+import org.eclipse.jface.viewers.ColumnLabelProvider;
 
 public class SpringConfigViewPart extends ViewPart {
 
     public static final String ID = "ui.views.SpringConfigViewPart";
 
-    private Composite container;
+    private SashForm mainSashForm;
+    private Composite topContainer;
     private StackLayout stackLayout;
     
     private ZestGraphComposite graphComposite;
     private StructuredTreeComposite treeComposite;
+    private TableViewer beanTableViewer;
     private ViewColorManager colorManager;
 
+    private boolean showBeanDetails = false;
     private boolean showDetails = false;
     
     @Override
     public void createPartControl(Composite parent) {
         colorManager = new ViewColorManager(parent.getDisplay());
 
-        container = new Composite(parent, SWT.NONE);
-        stackLayout = new StackLayout();
-        container.setLayout(stackLayout);
+        mainSashForm = new SashForm(parent, SWT.VERTICAL);
 
-        // Alkomponensek példányosítása
-        graphComposite = new ZestGraphComposite(container, colorManager, getSite().getPage());
-        treeComposite = new StructuredTreeComposite(container, colorManager, () -> showDetails, getSite().getPage());
+        // Felső panel (Gráf / Struktúra nézet váltó)
+        topContainer = new Composite(mainSashForm, SWT.NONE);
+        stackLayout = new StackLayout();
+        topContainer.setLayout(stackLayout);
+
+        graphComposite = new ZestGraphComposite(topContainer, colorManager, getSite().getPage());
+        treeComposite = new StructuredTreeComposite(topContainer, colorManager, () -> showDetails, getSite().getPage());
 
         stackLayout.topControl = graphComposite;
-        container.layout();
+
+     // Alsó panel (Bean részletező panel)
+        beanTableViewer = new TableViewer(mainSashForm, SWT.BORDER | SWT.V_SCROLL | SWT.FULL_SELECTION);
+        beanTableViewer.setContentProvider(ArrayContentProvider.getInstance());
+        beanTableViewer.setLabelProvider(new ColumnLabelProvider() {
+            @Override
+            public String getText(Object element) {
+                if (element instanceof BeanModel) {
+                    return ((BeanModel) element).getName();
+                }
+                return super.getText(element);
+            }
+
+            @Override
+            public Color getForeground(Object element) {
+                if (element instanceof BeanModel) {
+                    BeanModel bean = (BeanModel) element;
+                    return bean.isValid() ? colorManager.getGreenColor() : colorManager.getRedColor();
+                }
+                return null;
+            }
+        });
+
+        // Node kijelölések bekötése az alsó panel frissítésére
+        graphComposite.addSelectionListener(this::displayBeansForNode);
+        treeComposite.addSelectionListener(this::displayBeansForNode);
+
+        // Alapértelmezetten elrejtjük az alsó panelt (100% / 0%)
+        mainSashForm.setWeights(new int[]{100, 0});
 
         createViewMenu();
+    }
+
+    private void displayBeansForNode(ConfigNode node) {
+        if (node != null) {
+            beanTableViewer.setInput(node.getBeans());
+        } else {
+            beanTableViewer.setInput(null);
+        }
     }
 
     public void updateGraph(ConfigGraph configGraph) {
         graphComposite.updateGraph(configGraph, colorManager);
         treeComposite.setInput(configGraph);
+        beanTableViewer.setInput(null);
     }
 
     private void createViewMenu() {
@@ -58,7 +108,7 @@ public class SpringConfigViewPart extends ViewPart {
             public void run() {
                 if (isChecked()) {
                     stackLayout.topControl = graphComposite;
-                    container.layout(true, true);
+                    topContainer.layout(true, true);
                 }
             }
         };
@@ -69,7 +119,7 @@ public class SpringConfigViewPart extends ViewPart {
             public void run() {
                 if (isChecked()) {
                     stackLayout.topControl = treeComposite;
-                    container.layout(true, true);
+                    topContainer.layout(true, true);
                 }
             }
         };
@@ -82,16 +132,29 @@ public class SpringConfigViewPart extends ViewPart {
             }
         };
 
+        Action showBeanDetailsAction = new Action("Show bean details", IAction.AS_CHECK_BOX) {
+            @Override
+            public void run() {
+                showBeanDetails = isChecked();
+                if (showBeanDetails) {
+                    mainSashForm.setWeights(new int[]{70, 30});
+                } else {
+                    mainSashForm.setWeights(new int[]{100, 0});
+                }
+            }
+        };
+
         menuManager.add(graphViewAction);
         menuManager.add(structuredViewAction);
         menuManager.add(new Separator());
         menuManager.add(showDetailsAction);
+        menuManager.add(showBeanDetailsAction);
     }
 
     @Override
     public void setFocus() {
-        if (container != null && !container.isDisposed()) {
-            container.setFocus();
+        if (topContainer != null && !topContainer.isDisposed()) {
+            topContainer.setFocus();
         }
     }
 

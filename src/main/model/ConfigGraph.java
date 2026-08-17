@@ -10,7 +10,7 @@ import java.util.Set;
  */
 public class ConfigGraph {
 
-    private ConfigNode rootNode; // ÚJ: A kijelölt kezdő konfiguráció (gyökér)
+    private ConfigNode rootNode;
     private final Set<ConfigNode> nodes = new HashSet<>();
     private final Set<ConfigEdge> edges = new HashSet<>();
 
@@ -42,6 +42,12 @@ public class ConfigGraph {
     public Optional<ConfigNode> findNodeByFqn(String fullyQualifiedName) {
         return nodes.stream()
                 .filter(n -> n.getFullyQualifiedName().equals(fullyQualifiedName))
+                .findFirst();
+    }
+
+    public Optional<ConfigEdge> findEdge(ConfigNode source, ConfigNode target) {
+        return edges.stream()
+                .filter(e -> e.getSource().equals(source) && e.getTarget().equals(target))
                 .findFirst();
     }
 

@@ -1,7 +1,9 @@
 package main.core;
 
+import main.model.BeanModel;
 import main.model.ConfigGraph;
 import main.model.ConfigNode;
+import main.validation.BeanValidator;
 import main.validation.CycleDetector;
 import main.ui.dialogs.DiscoveryModeDialog.DiscoveryMode;
 
@@ -39,6 +41,7 @@ public class GraphBuilderService {
             return graph;
         }
 
+        populateBeans(rootNode, rootVisitor);
         graph.setRootNode(rootNode); 
         graph.addNode(rootNode);
 
@@ -56,6 +59,7 @@ public class GraphBuilderService {
                     .orElseGet(() -> new ConfigNode(currentFqn, currentUnit));
 
             SpringConfigAstVisitor visitor = parseAst(currentUnit);
+            populateBeans(currentNode, visitor);
 
             for (String importedName : visitor.getImportedClassNames()) {
                 ICompilationUnit targetUnit = workspaceConfigs.get(importedName);
@@ -69,6 +73,7 @@ public class GraphBuilderService {
                         ConfigNode targetNode = graph.findNodeByFqn(targetFqn)
                                 .orElseGet(() -> new ConfigNode(targetFqn, targetUnit));
 
+                        populateBeans(targetNode, targetVisitor);
                         graph.addEdge(currentNode, targetNode);
 
                         if (!processedFqns.contains(targetFqn)) {
@@ -99,6 +104,7 @@ public class GraphBuilderService {
                             if (graph.findNodeByFqn(targetFqn).isPresent()) {
                                 ConfigNode sourceNode = graph.findNodeByFqn(unitFqn)
                                         .orElseGet(() -> new ConfigNode(unitFqn, unit));
+                                populateBeans(sourceNode, visitor);
                                 ConfigNode targetNode = graph.findNodeByFqn(targetFqn).get();
 
                                 graph.addEdge(sourceNode, targetNode);
@@ -110,8 +116,15 @@ public class GraphBuilderService {
         }
 
         CycleDetector.detectCycles(graph);
+        BeanValidator.validateBeans(graph);
 
         return graph;
+    }
+
+    private void populateBeans(ConfigNode node, SpringConfigAstVisitor visitor) {
+        for (String beanName : visitor.getDeclaredBeanNames()) {
+            node.addBean(new BeanModel(beanName));
+        }
     }
 
     private SpringConfigAstVisitor parseAst(ICompilationUnit unit) {

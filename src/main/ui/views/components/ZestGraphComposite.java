@@ -54,8 +54,12 @@ public class ZestGraphComposite extends Composite {
         for (ConfigNode node : configGraph.getNodes()) {
             GraphNode gNode = new GraphNode(graphWidget, SWT.NONE, node.getDisplayName());
             gNode.setData(node);
-            gNode.setBackgroundColor(node.isCyclic() ? colorManager.getRedColor() : colorManager.getGreenColor());
+
+            // Ha ciklikus VAGY invalid bean van benne, pirosra színezzük
+            boolean isError = node.isCyclic() || node.hasInvalidBean();
+            gNode.setBackgroundColor(isError ? colorManager.getRedColor() : colorManager.getGreenColor());
             gNode.setForegroundColor(colorManager.getWhiteColor());
+            
             nodeMap.put(node, gNode);
         }
 
@@ -67,6 +71,18 @@ public class ZestGraphComposite extends Composite {
             }
         }
         graphWidget.applyLayout();
+    }
+    
+    public void addSelectionListener(java.util.function.Consumer<ConfigNode> onNodeSelected) {
+        graphWidget.addSelectionListener(org.eclipse.swt.events.SelectionListener.widgetSelectedAdapter(e -> {
+            List<?> selectedItems = graphWidget.getSelection();
+            if (!selectedItems.isEmpty() && selectedItems.get(0) instanceof GraphNode) {
+                GraphNode selectedNode = (GraphNode) selectedItems.get(0);
+                if (selectedNode.getData() instanceof ConfigNode) {
+                    onNodeSelected.accept((ConfigNode) selectedNode.getData());
+                }
+            }
+        }));
     }
 
     private void clearGraph() {
