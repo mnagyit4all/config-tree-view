@@ -14,6 +14,16 @@ public class BeanValidator {
             return;
         }
 
+        for (ConfigNode node : graph.getNodes()) {
+            node.setHasInvalidBean(false);
+            for (BeanModel bean : node.getBeans()) {
+                bean.setValid(true);
+            }
+        }
+        for (ConfigEdge edge : graph.getEdges()) {
+            edge.setInvalid(false);
+        }
+
         ConfigNode root = graph.getRootNode();
         Queue<ConfigNode> queue = new ArrayDeque<>();
         Map<ConfigNode, Set<String>> parentBeansMap = new HashMap<>();
@@ -22,6 +32,7 @@ public class BeanValidator {
         parentBeansMap.put(root, new HashSet<>());
 
         Set<ConfigNode> directlyInvalidNodes = new HashSet<>();
+        Set<String> activeFilters = BeanFilterManager.getInstance().getActiveFilters();
 
         while (!queue.isEmpty()) {
             ConfigNode current = queue.poll();
@@ -29,11 +40,14 @@ public class BeanValidator {
             Set<String> currentEffectiveBeans = new HashSet<>(inheritedBeans);
 
             for (BeanModel bean : current.getBeans()) {
-                if (inheritedBeans.contains(bean.getName())) {
+                boolean isFiltered = isBeanFiltered(bean, activeFilters);
+
+                if (!isFiltered && inheritedBeans.contains(bean.getName())) {
                     bean.setValid(false);
                     current.setHasInvalidBean(true);
                     directlyInvalidNodes.add(current);
                 }
+                
                 currentEffectiveBeans.add(bean.getName());
             }
 
@@ -54,6 +68,18 @@ public class BeanValidator {
         for (ConfigNode invalidNode : directlyInvalidNodes) {
             propagateInvalidStatusUpward(graph, invalidNode, new HashSet<>());
         }
+    }
+
+    private static boolean isBeanFiltered(BeanModel bean, Set<String> activeFilters) {
+        if (activeFilters.isEmpty() || bean.getAnnotations().isEmpty()) {
+            return false;
+        }
+        for (String activeFilter : activeFilters) {
+            if (bean.hasAnnotation(activeFilter)) {
+                return true;
+            }
+        }
+        return false;
     }
 
     private static void propagateInvalidStatusUpward(ConfigGraph graph, ConfigNode currentNode, Set<ConfigNode> visited) {

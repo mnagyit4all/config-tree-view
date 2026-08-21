@@ -3,16 +3,18 @@ package main.ui.views;
 import main.model.BeanModel;
 import main.model.ConfigGraph;
 import main.model.ConfigNode;
+import main.ui.dialogs.BeanFilterDialog;
 import main.ui.views.components.StructuredTreeComposite;
 import main.ui.views.components.ZestGraphComposite;
 import main.ui.views.helpers.ViewColorManager;
+import main.validation.BeanValidator;
 
 import org.eclipse.jface.action.Action;
 import org.eclipse.jface.action.IAction;
 import org.eclipse.jface.action.IMenuManager;
 import org.eclipse.jface.action.Separator;
+import org.eclipse.jface.dialogs.IDialogConstants;
 import org.eclipse.jface.viewers.ArrayContentProvider;
-import org.eclipse.jface.viewers.LabelProvider;
 import org.eclipse.jface.viewers.TableViewer;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.SashForm;
@@ -37,7 +39,9 @@ public class SpringConfigViewPart extends ViewPart {
 
     private boolean showBeanDetails = false;
     private boolean showDetails = false;
-    
+
+    private ConfigGraph currentGraph;
+
     @Override
     public void createPartControl(Composite parent) {
         colorManager = new ViewColorManager(parent.getDisplay());
@@ -95,6 +99,7 @@ public class SpringConfigViewPart extends ViewPart {
     }
 
     public void updateGraph(ConfigGraph configGraph) {
+        this.currentGraph = configGraph; // Eltároljuk az aktuális gráf referenciáját
         graphComposite.updateGraph(configGraph, colorManager);
         treeComposite.setInput(configGraph);
         beanTableViewer.setInput(null);
@@ -144,11 +149,31 @@ public class SpringConfigViewPart extends ViewPart {
             }
         };
 
+        Action addFilterAction = new Action("Add filter...") {
+            @Override
+            public void run() {
+                BeanFilterDialog dialog = new BeanFilterDialog(getSite().getShell());
+                if (dialog.open() == IDialogConstants.OK_ID) {
+                    if (currentGraph != null) {
+                        // Újravalidálás az új aktív szűrőkkel
+                        BeanValidator.validateBeans(currentGraph);
+                        
+                        // Nézetek frissítése (4. HIBA JAVÍTVA: graphComposite.updateGraph hívása refresh() helyett)
+                        treeComposite.refresh();
+                        graphComposite.updateGraph(currentGraph, colorManager);
+                        beanTableViewer.refresh();
+                    }
+                }
+            }
+        };
+
         menuManager.add(graphViewAction);
         menuManager.add(structuredViewAction);
         menuManager.add(new Separator());
         menuManager.add(showDetailsAction);
         menuManager.add(showBeanDetailsAction);
+        menuManager.add(new Separator());
+        menuManager.add(addFilterAction);
     }
 
     @Override

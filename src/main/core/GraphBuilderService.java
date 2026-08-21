@@ -31,7 +31,7 @@ public class GraphBuilderService {
             return graph;
         }
 
-     // 1. Gyökér csomópont feldolgozása
+        // 1. Gyökér csomópont feldolgozása
         String rootFqn = getFullyQualifiedName(rootUnit);
         ConfigNode rootNode = new ConfigNode(rootFqn, rootUnit);
 
@@ -122,13 +122,13 @@ public class GraphBuilderService {
     }
 
     private void populateBeans(ConfigNode node, SpringConfigAstVisitor visitor) {
-        for (String beanName : visitor.getDeclaredBeanNames()) {
-            node.addBean(new BeanModel(beanName));
+        for (BeanModel bean : visitor.getDeclaredBeans()) {
+            node.addBean(bean);
         }
     }
 
     private SpringConfigAstVisitor parseAst(ICompilationUnit unit) {
-        ASTParser parser = ASTParser.newParser(AST.JLS17);
+        ASTParser parser = ASTParser.newParser(AST.JLS21);
         parser.setSource(unit);
         parser.setResolveBindings(true);
         CompilationUnit cu = (CompilationUnit) parser.createAST(null);
