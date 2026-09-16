@@ -21,11 +21,11 @@ public class ConfigTreeContentProvider implements ITreeContentProvider {
             this.currentGraph = (ConfigGraph) inputElement;
 
             // 1. Elsődleges: Explicit beállított gyökér elem
-            if (currentGraph.getRootNode() != null) {
+            if (currentGraph.getRootNode() != null && currentGraph.getRootNode().isVisible()) {
                 return new Object[] { currentGraph.getRootNode() };
             }
 
-            // 2. Tartalék (Fallback): Megkeressük azokat a csomópontokat, amelyeket senki sem importál (in-degree = 0)
+            // 2. Tartalék (Fallback): Megkeressük azokat a látható csomópontokat, amelyeket senki sem importál
             Set<ConfigNode> targets = new HashSet<>();
             for (ConfigEdge edge : currentGraph.getEdges()) {
                 targets.add(edge.getTarget());
@@ -33,7 +33,7 @@ public class ConfigTreeContentProvider implements ITreeContentProvider {
 
             List<ConfigNode> roots = new ArrayList<>();
             for (ConfigNode node : currentGraph.getNodes()) {
-                if (!targets.contains(node)) {
+                if (!targets.contains(node) && node.isVisible()) {
                     roots.add(node);
                 }
             }
@@ -42,9 +42,11 @@ public class ConfigTreeContentProvider implements ITreeContentProvider {
                 return roots.toArray();
             }
 
-            // 3. Ha minden elem körkörös függőségben van, az első csomópontot adjuk vissza
-            if (!currentGraph.getNodes().isEmpty()) {
-                return new Object[] { currentGraph.getNodes().iterator().next() };
+            // 3. Ha minden elem körkörös függőségben van, az első látható csomópontot adjuk vissza
+            for (ConfigNode node : currentGraph.getNodes()) {
+                if (node.isVisible()) {
+                    return new Object[] { node };
+                }
             }
         }
         return new Object[0];
@@ -57,7 +59,7 @@ public class ConfigTreeContentProvider implements ITreeContentProvider {
             List<ConfigNode> children = new ArrayList<>();
 
             for (ConfigEdge edge : currentGraph.getEdges()) {
-                if (edge.getSource().equals(parentNode)) {
+                if (edge.getSource().equals(parentNode) && edge.getTarget().isVisible()) {
                     children.add(edge.getTarget());
                 }
             }

@@ -20,6 +20,7 @@ public class ConfigNode {
     
     private boolean cyclic = false;
     private boolean hasInvalidBean = false;
+    private boolean visible = true;
     private final List<BeanModel> beans = new ArrayList<>();
 
     public ConfigNode(String fullyQualifiedName, ICompilationUnit compilationUnit) {
@@ -68,9 +69,14 @@ public class ConfigNode {
         this.cyclic = cyclic;
     }
 
-    /**
-     * Szöveges státusz a Structured View felirataihoz (2.4 pont alapján).
-     */
+    public boolean isVisible() {
+        return visible;
+    }
+
+    public void setVisible(boolean visible) {
+        this.visible = visible;
+    }
+
     public String getStatusTag() {
         if (cyclic) {
             return "[CIRCULAR]";
@@ -80,7 +86,6 @@ public class ConfigNode {
         }
         return "[OK]";
     }
-
 
     public String getFullyQualifiedName() {
         return fullyQualifiedName;

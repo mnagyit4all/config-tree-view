@@ -52,6 +52,7 @@ public class SpringConfigViewPart extends ViewPart {
 
     private boolean showBeanDetails = false;
     private boolean showDetails = false;
+    private boolean showSearchBar = false;
 
     private ConfigGraph currentGraph;
     private Shell optionsShell;
@@ -195,6 +196,15 @@ public class SpringConfigViewPart extends ViewPart {
             } else {
                 mainSashForm.setWeights(new int[]{100, 0});
             }
+        });
+
+        // --- ÚJ CHECKBOX: Show search bar ---
+        Button showSearchBarCheck = new Button(optionsShell, SWT.CHECK);
+        showSearchBarCheck.setText("Show search bar");
+        showSearchBarCheck.setSelection(showSearchBar);
+        showSearchBarCheck.addListener(SWT.Selection, e -> {
+            showSearchBar = showSearchBarCheck.getSelection();
+            treeComposite.setSearchBarVisible(showSearchBar);
         });
 
         // Elválasztó vonal
