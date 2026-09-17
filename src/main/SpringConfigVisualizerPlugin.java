@@ -1,5 +1,7 @@
 package main;
 
+import static main.model.DropDownSettings.setupDefault;
+
 import org.eclipse.ui.plugin.AbstractUIPlugin;
 import org.osgi.framework.BundleContext;
 
@@ -19,6 +21,7 @@ public class SpringConfigVisualizerPlugin extends AbstractUIPlugin {
     public void start(BundleContext context) throws Exception {
         super.start(context);
         plugin = this;
+        setupDefault();
     }
 
     @Override

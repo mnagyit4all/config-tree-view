@@ -3,6 +3,7 @@ package main.ui.views;
 import main.model.BeanModel;
 import main.model.ConfigGraph;
 import main.model.ConfigNode;
+import main.model.DropDownSettings;
 import main.ui.dialogs.BeanFilterDialog;
 import main.ui.views.components.StructuredTreeComposite;
 import main.ui.views.components.ZestGraphComposite;
@@ -50,10 +51,7 @@ public class SpringConfigViewPart extends ViewPart {
     private StructuredTreeComposite treeComposite;
     private TableViewer beanTableViewer;
     private ViewColorManager colorManager;
-
-    private boolean showBeanDetails = false;
-    private boolean showDetails = false;
-    private boolean showSearchBar = false;
+    DropDownSettings settings = new DropDownSettings();
 
     private ConfigGraph currentGraph;
     private Shell optionsShell;
@@ -70,7 +68,7 @@ public class SpringConfigViewPart extends ViewPart {
         topContainer.setLayout(stackLayout);
 
         graphComposite = new ZestGraphComposite(topContainer, colorManager, getSite().getPage());
-        treeComposite = new StructuredTreeComposite(topContainer, colorManager, () -> showDetails, getSite().getPage());
+        treeComposite = new StructuredTreeComposite(topContainer, colorManager, () -> settings.getShowDetails(), getSite().getPage());
 
         stackLayout.topControl = graphComposite;
 
@@ -181,18 +179,18 @@ public class SpringConfigViewPart extends ViewPart {
         // --- Checkboxok ---
         Button showDetailsCheck = new Button(optionsShell, SWT.CHECK);
         showDetailsCheck.setText("Show details");
-        showDetailsCheck.setSelection(showDetails);
+        showDetailsCheck.setSelection(settings.getShowDetails());
         showDetailsCheck.addListener(SWT.Selection, e -> {
-            showDetails = showDetailsCheck.getSelection();
-            treeComposite.refresh();
+        	settings.setShowDetails(showDetailsCheck.getSelection());
+        	treeComposite.refresh();
         });
 
         Button showBeanDetailsCheck = new Button(optionsShell, SWT.CHECK);
         showBeanDetailsCheck.setText("Show bean details");
-        showBeanDetailsCheck.setSelection(showBeanDetails);
+        showBeanDetailsCheck.setSelection(settings.getShowBeanDetails());
         showBeanDetailsCheck.addListener(SWT.Selection, e -> {
-            showBeanDetails = showBeanDetailsCheck.getSelection();
-            if (showBeanDetails) {
+            settings.setShowBeanDetails(showBeanDetailsCheck.getSelection());
+            if (settings.getShowBeanDetails()) {
                 mainSashForm.setWeights(new int[]{70, 30});
             } else {
                 mainSashForm.setWeights(new int[]{100, 0});
@@ -202,10 +200,10 @@ public class SpringConfigViewPart extends ViewPart {
         // --- ÚJ CHECKBOX: Show search bar ---
         Button showSearchBarCheck = new Button(optionsShell, SWT.CHECK);
         showSearchBarCheck.setText("Show search bar");
-        showSearchBarCheck.setSelection(showSearchBar);
+        showSearchBarCheck.setSelection(settings.getShowSearchBar());
         showSearchBarCheck.addListener(SWT.Selection, e -> {
-            showSearchBar = showSearchBarCheck.getSelection();
-            treeComposite.setSearchBarVisible(showSearchBar);
+        	settings.setShowSearchBar(showSearchBarCheck.getSelection());
+        	treeComposite.setSearchBarVisible(settings.getShowSearchBar());
         });
 
         // Elválasztó vonal
