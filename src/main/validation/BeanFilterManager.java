@@ -5,19 +5,44 @@ import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.Set;
 
+import main.model.ConfigGraph;
+
 public class BeanFilterManager {
 
-    private static final BeanFilterManager INSTANCE = new BeanFilterManager();
+    private static BeanFilterManager INSTANCE;
 
     // Elérhető szűrő annotációk
     private final Set<String> availableFilters = new LinkedHashSet<>();
     // Aktívan bepipált szűrők
     private final Set<String> activeFilters = new HashSet<>();
 
-    private BeanFilterManager() {
-        // Alapértelmezett FS szerinti szűrő hozzáadása
-        addAvailableFilter("@ConditionalOnMissingBean");
-        addAvailableFilter("@ConditionalOnMissingClass");
+    private BeanFilterManager(ConfigGraph configGraph) {
+        if (configGraph != null && configGraph.getNodes() != null) {
+            configGraph.getNodes().forEach(n -> {
+                if (n.getBeans() != null) {
+                    n.getBeans().forEach(b -> {
+                        if (b.getAnnotations() != null) {
+                            b.getAnnotations().forEach(a -> {
+                            	if (a != null && a.startsWith("@")) {
+                            	    addAvailableFilter(a);
+                            	}
+                            });
+                        }
+                    });
+                }
+            });
+        }
+    }
+    
+    public static synchronized BeanFilterManager initialize(ConfigGraph configGraph) {
+        if (INSTANCE == null) {
+        	INSTANCE = new BeanFilterManager(configGraph);
+        }
+        return INSTANCE;
+    }
+    
+    public static void clearFilter() {
+    	INSTANCE = null;
     }
 
     public static BeanFilterManager getInstance() {

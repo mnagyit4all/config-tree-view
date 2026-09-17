@@ -3,6 +3,7 @@ package main.core;
 import main.model.BeanModel;
 import main.model.ConfigGraph;
 import main.model.ConfigNode;
+import main.validation.BeanFilterManager;
 import main.validation.BeanValidator;
 import main.validation.CycleDetector;
 import main.ui.dialogs.DiscoveryModeDialog.DiscoveryMode;
@@ -117,6 +118,7 @@ public class GraphBuilderService {
 
         CycleDetector.detectCycles(graph);
         BeanValidator.validateBeans(graph);
+        BeanFilterManager.clearFilter();
 
         return graph;
     }

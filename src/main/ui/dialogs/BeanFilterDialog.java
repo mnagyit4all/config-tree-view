@@ -1,5 +1,6 @@
 package main.ui.dialogs;
 
+import main.model.ConfigGraph;
 import main.validation.BeanFilterManager;
 
 import org.eclipse.jface.dialogs.TitleAreaDialog;
@@ -29,8 +30,9 @@ public class BeanFilterDialog extends TitleAreaDialog {
     private final BeanFilterManager filterManager;
     private String filterText = "";
 
-    public BeanFilterDialog(Shell parentShell) {
+    public BeanFilterDialog(Shell parentShell, ConfigGraph configGraph) {
         super(parentShell);
+        BeanFilterManager.initialize(configGraph);
         this.filterManager = BeanFilterManager.getInstance();
     }
 

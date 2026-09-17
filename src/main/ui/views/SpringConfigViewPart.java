@@ -7,6 +7,7 @@ import main.ui.dialogs.BeanFilterDialog;
 import main.ui.views.components.StructuredTreeComposite;
 import main.ui.views.components.ZestGraphComposite;
 import main.ui.views.helpers.ViewColorManager;
+import main.validation.BeanFilterManager;
 import main.validation.BeanValidator;
 
 import java.net.URI;
@@ -216,7 +217,7 @@ public class SpringConfigViewPart extends ViewPart {
         addFilterButton.setText("Add filter...");
         addFilterButton.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
         addFilterButton.addListener(SWT.Selection, e -> {
-            BeanFilterDialog dialog = new BeanFilterDialog(getSite().getShell());
+            BeanFilterDialog dialog = new BeanFilterDialog(getSite().getShell(), currentGraph);
             if (dialog.open() == IDialogConstants.OK_ID) {
                 if (currentGraph != null) {
                     BeanValidator.validateBeans(currentGraph);
